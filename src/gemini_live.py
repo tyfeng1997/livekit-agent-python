@@ -41,14 +41,14 @@ class Assistant(Agent):
             # You are curious, friendly, and have a sense of humor.""",
             instructions="You are a helpful AI assistant. Keep your responses concise and conversational. You're having a real-time voice conversation, so avoid long explanations unless asked."
         )
-    async def on_enter(self) -> None:
-        await self.session.generate_reply(
-            instructions="Greet the user with a warm welcome"
-        )
-    async def on_exit(self):
-        await self.session.generate_reply(
-            instructions="Tell the user a friendly goodbye before you exit.",
-        )
+    # async def on_enter(self) -> None:
+    #     await self.session.generate_reply(
+    #         instructions="Greet the user with a warm welcome"
+    #     )
+    # async def on_exit(self):
+    #     await self.session.generate_reply(
+    #         instructions="Tell the user a friendly goodbye before you exit.",
+    #     )
     
     async def on_user_turn_completed(
         self, turn_ctx: ChatContext, new_message: ChatMessage,
@@ -88,36 +88,45 @@ async def entrypoint(ctx: JobContext):
         "room": ctx.room.name,
     }
 
-    # Set up a voice AI pipeline using OpenAI, Cartesia, Deepgram, and the LiveKit turn detector
-    session = AgentSession(
-        # A Large Language Model (LLM) is your agent's brain, processing user input and generating a response
-        # See all providers at https://docs.livekit.io/agents/integrations/llm/
-        # llm=openai.LLM(model="gpt-4o-mini"),
-        llm=anthropic.LLM(model="claude-sonnet-4-20250514"),
-        # Speech-to-text (STT) is your agent's ears, turning the user's speech into text that the LLM can understand
-        # See all providers at https://docs.livekit.io/agents/integrations/stt/
-        # stt=deepgram.STT(model="nova-3", language="multi"),
-        # stt=cartesia.STT(model="ink-whisper",language="zh"),
-        turn_detection="stt",
-        stt=assemblyai.STT(
-            end_of_turn_confidence_threshold=0.7,
-            min_end_of_turn_silence_when_confident=160,
-            max_turn_silence=2400,
-        ),
-        # Text-to-speech (TTS) is your agent's voice, turning the LLM's text into speech that the user can hear
-        # See all providers at https://docs.livekit.io/agents/integrations/tts/
-        tts=cartesia.TTS(voice="a0e99841-438c-4a64-b679-ae501e7d6091"),
-        # VAD and turn detection are used to determine when the user is speaking and when the agent should respond
-        # See more at https://docs.livekit.io/agents/build/turns
-        # turn_detection=MultilingualModel(),
-        vad=ctx.proc.userdata["vad"],
-        # allow the LLM to generate a response while waiting for the end of turn
-        # See more at https://docs.livekit.io/agents/build/audio/#preemptive-generation
-        preemptive_generation=True,
+    # # Set up a voice AI pipeline using OpenAI, Cartesia, Deepgram, and the LiveKit turn detector
+    # session = AgentSession(
+    #     # A Large Language Model (LLM) is your agent's brain, processing user input and generating a response
+    #     # See all providers at https://docs.livekit.io/agents/integrations/llm/
+    #     # llm=openai.LLM(model="gpt-4o-mini"),
+    #     llm=anthropic.LLM(model="claude-sonnet-4-20250514"),
+    #     # Speech-to-text (STT) is your agent's ears, turning the user's speech into text that the LLM can understand
+    #     # See all providers at https://docs.livekit.io/agents/integrations/stt/
+    #     # stt=deepgram.STT(model="nova-3", language="multi"),
+    #     # stt=cartesia.STT(model="ink-whisper",language="zh"),
+    #     turn_detection="stt",
+    #     stt=assemblyai.STT(
+    #         end_of_turn_confidence_threshold=0.7,
+    #         min_end_of_turn_silence_when_confident=160,
+    #         max_turn_silence=2400,
+    #     ),
+    #     # Text-to-speech (TTS) is your agent's voice, turning the LLM's text into speech that the user can hear
+    #     # See all providers at https://docs.livekit.io/agents/integrations/tts/
+    #     tts=cartesia.TTS(voice="a0e99841-438c-4a64-b679-ae501e7d6091"),
+    #     # VAD and turn detection are used to determine when the user is speaking and when the agent should respond
+    #     # See more at https://docs.livekit.io/agents/build/turns
+    #     # turn_detection=MultilingualModel(),
+    #     vad=ctx.proc.userdata["vad"],
+    #     # allow the LLM to generate a response while waiting for the end of turn
+    #     # See more at https://docs.livekit.io/agents/build/audio/#preemptive-generation
+    #     preemptive_generation=True,
         
-    )
+    # )
 
-    
+    # To use a realtime model instead of a voice pipeline, use the following session setup instead:
+    session = AgentSession(
+        # See all providers at https://docs.livekit.io/agents/integrations/realtime/
+        llm=google.beta.realtime.RealtimeModel(
+        model="gemini-2.0-flash-exp",
+        voice="Puck",
+        temperature=0.8,
+        instructions="You are a helpful assistant",
+    ),
+    )
 
     # sometimes background noise could interrupt the agent session, these are considered false positive interruptions
     # when it's detected, you may resume the agent's speech

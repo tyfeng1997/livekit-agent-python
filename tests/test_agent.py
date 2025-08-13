@@ -3,7 +3,7 @@ from livekit.agents import AgentSession, llm
 from livekit.agents.voice.run_result import mock_tools
 from livekit.plugins import openai
 
-from agent import Assistant
+from agent_gemini_live import Assistant
 
 
 def _llm() -> llm.LLM:
