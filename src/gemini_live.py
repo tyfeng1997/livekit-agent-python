@@ -198,5 +198,15 @@ async def entrypoint(ctx: JobContext):
     await ctx.connect()
 
 
+
 if __name__ == "__main__":
-    cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint, prewarm_fnc=prewarm))
+    import os
+    agent_name = os.getenv("AGENT_NAME", "")
+    print(f"Starting agent with name: {agent_name}")
+    cli.run_app(
+        WorkerOptions(
+            entrypoint_fnc=entrypoint, 
+            prewarm_fnc=prewarm,
+            agent_name=agent_name
+        )
+    )
